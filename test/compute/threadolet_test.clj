@@ -6,15 +6,22 @@
   [bindings & body]
   (let-template (partial short-circuit nil?) bindings body))
 
-(alet [x (inc 1)
-       y (dec x)]
-  (println x y)
-  (- x y))
+(deftest short-circuit-nil-let
+  (is (= 1 (alet [x (inc 1)
+                  y (dec x)]
+             (println x y)
+             (- x y))))
 
-(alet [x (inc 1)
-       y nil]
-  (println x y)
-  (- x y))
+  (is (nil? (alet [x (inc 1)
+                   y nil]
+              (println x y)
+              (- x y)))))
+
+(comment
+  (alet [x (inc 1)
+         y]
+    (println x y)
+    (- x y)))
 
 (defmacro a->
   [x & forms]
@@ -30,14 +37,11 @@
                  ((constantly nil))
                  (- 5)))))
 
-
-
-
 (defmacro a-as->
   [x name & forms]
   (as->template (partial short-circuit nil?) x forms name))
 
-(deftest short-circuit-nil-as-first
+(deftest short-circuit-nil-as
   (is (= 3 (a-as-> 1 z
                    (inc z)
                    (- 5 z))))
@@ -95,10 +99,33 @@
 
 (comment
   (log-as-> 1 z
-          (inc z)
-          (- 5 z))
+            (inc z)
+            (- 5 z))
 
   (log-as-> 1 z
-          (inc z)
-          ((constantly nil) z)
-          (- 5 z)))
+            (inc z)
+            ((constantly nil) z)
+            (- 5 z)))
+
+(defn short-circuit-nil
+  [value continuation-fn]
+  (if (some? value)
+    (continuation-fn)
+    value))
+
+(defmacro a-as-fn->
+  [x name & forms]
+  `(as->template-fn short-circuit-nil ~x ~forms ~name))
+
+(deftest short-circuit-nil-as-fn
+  (is (= 3 (a-as-fn-> 1 z
+                      (inc z)
+                      (- 5 z))))
+
+  (is (nil? (a-as-> 1 z
+                    (inc z)
+                    ((constantly nil) z
+                                (- 5 z))))))
+
+
+

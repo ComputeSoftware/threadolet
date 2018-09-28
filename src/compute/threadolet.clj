@@ -25,9 +25,6 @@
 
 (defn let-template
   [context-fn bindings body]
-  #_(assert-args
-      (vector? bindings) "a vector for its binding"
-      (even? (count bindings)) "an even number of forms in binding vector")
   (let-template* context-fn (partition 2 (destructure bindings)) body nil nil))
 
 (defn as->template
@@ -43,6 +40,15 @@
   [context-fn x forms thread-fn]
   (let [value-sym (gensym "value")]
     (as->template context-fn x (thread-fn value-sym forms) value-sym)))
+
+(defmacro as->template-fn
+  [context-fn x forms value-sym]
+  (if forms
+    (let [form (first forms)]
+      `(let [~value-sym ~x]
+         (~context-fn ~value-sym (fn [] (as->template-fn ~context-fn ~form ~(next forms) ~value-sym)))))
+    `(let [~value-sym ~x]
+       (~context-fn ~value-sym (constantly ~value-sym)))))
 
 (defn thread-first
   [value-sym forms]
