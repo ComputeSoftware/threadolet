@@ -9,7 +9,5 @@ pom.xml.asc
 /.lein-*
 /.nrepl-history
 /.nrepl-port
-.hgignore
-.hg/
 .idea
 threadolet.iml
