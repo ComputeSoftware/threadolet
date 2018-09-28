@@ -22,11 +22,9 @@
   (println x y)
   (- x y))
 
-(defn)
-
 (defmacro a->
   [x & forms]
-  (->template (partial short-circuit nil?) x forms))
+  (->template (partial short-circuit nil?) x forms thread-first))
 
 (a-> 1
      inc
@@ -39,20 +37,20 @@
 
 (defmacro a-as->
   [x name & forms]
-  (as->template (partial short-circuit nil?) x name forms))
+  (as->template (partial short-circuit nil?) x forms name))
 
 (a-as-> 1 z
-     (inc z)
-     (- 5 z))
+        (inc z)
+        (- 5 z))
 
 (a-as-> 1 z
-     (inc z)
-     ((constantly nil) z)
-     (- 5 z))
+        (inc z)
+        ((constantly nil) z)
+        (- 5 z))
 
 (defmacro e->>
   [x & forms]
-  (->>template (partial short-circuit #(and (seqable? %) (empty? %))) x forms))
+  (->template (partial short-circuit #(and (seqable? %) (empty? %))) x forms thread-last))
 
 (e->> [2 4]
       (map inc)
@@ -63,3 +61,23 @@
       (map inc)
       (filter even?)
       empty?)
+
+(defn replace-nil
+  [value-sym recur-fn]
+  `(if (nil? ~value-sym)
+     (let [~value-sym 0]
+       ~(recur-fn))
+     ~(recur-fn)))
+
+(defmacro r->
+  [x & forms]
+  (->template replace-nil x forms thread-first))
+
+(r-> 1
+     inc
+     (- 5))
+
+(r-> 1
+     inc
+     ((constantly nil))
+     (- 5))
