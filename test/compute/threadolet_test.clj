@@ -26,41 +26,47 @@
   [x & forms]
   (->template (partial short-circuit nil?) x forms thread-first))
 
-(a-> 1
-     inc
-     (- 5))
+(deftest short-circuit-nil-thread-first
+  (is (= -3 (a-> 1
+                 inc
+                 (- 5))))
 
-(a-> 1
-     inc
-     ((constantly nil))
-     (- 5))
+  (is (nil? (a-> 1
+                 inc
+                 ((constantly nil))
+                 (- 5)))))
+
+
+
 
 (defmacro a-as->
   [x name & forms]
   (as->template (partial short-circuit nil?) x forms name))
 
-(a-as-> 1 z
-        (inc z)
-        (- 5 z))
+(deftest short-circuit-nil-as-first
+  (is (= 3 (a-as-> 1 z
+                   (inc z)
+                   (- 5 z))))
 
-(a-as-> 1 z
-        (inc z)
-        ((constantly nil) z)
-        (- 5 z))
+  (is (nil? (a-as-> 1 z
+                    (inc z)
+                    ((constantly nil) z)
+                    (- 5 z)))))
 
 (defmacro e->>
   [x & forms]
   (->template (partial short-circuit #(and (seqable? %) (empty? %))) x forms thread-last))
 
-(e->> [2 4]
-      (map inc)
-      (filter odd?)
-      empty?)
+(deftest short-circuit-empty-thread-last
+  (is (= false (e->> [2 4]
+                     (map inc)
+                     (filter odd?)
+                     empty?)))
 
-(e->> [2 4]
-      (map inc)
-      (filter even?)
-      empty?)
+  (is (empty? (e->> [2 4]
+                    (map inc)
+                    (filter even?)
+                    empty?))))
 
 (defn replace-nil
   [value-sym recur-fn]
@@ -73,11 +79,32 @@
   [x & forms]
   (->template replace-nil x forms thread-first))
 
-(r-> 1
-     inc
-     (- 5))
+(deftest replace-nil-thread-first
+  (is (= -3 (r-> 1
+                 inc
+                 (- 5))))
 
-(r-> 1
-     inc
-     ((constantly nil))
-     (- 5))
+  (is (= -5 (r-> 1
+                 inc
+                 ((constantly nil))
+                 (- 5)))))
+
+(defn log
+  [value-sym recur-fn]
+  `(do
+     (println ~(name value-sym) ~value-sym)
+     ~(recur-fn)))
+
+(defmacro log-as->
+  [x name & forms]
+  (as->template log x forms name))
+
+(comment
+  (log-as-> 1 z
+          (inc z)
+          (- 5 z))
+
+  (log-as-> 1 z
+          (inc z)
+          ((constantly nil) z)
+          (- 5 z)))
