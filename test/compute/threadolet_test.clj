@@ -2,12 +2,6 @@
   (:require [clojure.test :refer :all]
             [compute.threadolet :refer :all]))
 
-(defn short-circuit
-  [pred value-sym recur-fn]
-  `(if (~pred ~value-sym)
-     ~value-sym
-     ~(recur-fn)))
-
 (defmacro alet
   [bindings & body]
   (let-template (partial short-circuit nil?) bindings body))

@@ -57,3 +57,9 @@
           (with-meta `(~(first %) ~@(next %) ~value-sym) (meta %))
           (list % value-sym))
        forms))
+
+(defn short-circuit
+  [pred value-sym recur-fn]
+  `(if (~pred ~value-sym)
+     ~value-sym
+     ~(recur-fn)))
