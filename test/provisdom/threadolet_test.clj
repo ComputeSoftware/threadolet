@@ -1,6 +1,6 @@
-(ns compute.threadolet-test
+(ns provisdom.threadolet-test
   (:require [clojure.test :refer :all]
-            [compute.threadolet :refer :all]))
+            [provisdom.threadolet :refer :all]))
 
 (defmacro alet
   [bindings & body]

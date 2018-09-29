@@ -1,4 +1,4 @@
-(ns compute.threadolet)
+(ns provisdom.threadolet)
 
 (defmacro ^{:private true} assert-args
   [& pairs]
